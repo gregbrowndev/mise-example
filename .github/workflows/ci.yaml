@@ -1,0 +1,63 @@
+name: "CI"
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  packages: read
+  security-events: write
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MISE_EXPERIMENTAL: true
+  MISE_LOCKED: true
+
+jobs:
+  ci:
+    name: "Run mise ci"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # git-restore-mtime needs full history to find each file's last-touching commit
+          fetch-depth: 0
+
+      # Restore file mtimes to match the last commit that touched each file.
+      # actions/checkout writes every file with mtime=now, which would make
+      # mise see all task `sources` as newer than restored `.terraform/`
+      # outputs, defeating the cache. With restored mtimes, only files
+      # actually changed in the new commit appear newer than the cache.
+      - uses: chetan/git-restore-mtime-action@v2
+
+      - id: mise-version
+        run: |
+          version=$(grep '^min_version' mise.toml | sed "s/.*= *['\"]//;s/['\"].*//")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: jdx/mise-action@v4
+        with:
+          version: ${{ steps.mise-version.outputs.version }}
+
+      # persist mise task output
+      - uses: actions/cache@v5
+        with:
+          path: |
+            ~/.local/state/mise
+          # Hash mise.lock so the cache is keyed on exact tool versions.
+          # mise.toml task/settings changes don't need to invalidate this
+          # cache because mise's source/output mtime check handles staleness.
+          key: mise-${{ runner.os }}-${{ hashFiles('mise.lock') }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            mise-${{ runner.os }}-${{ hashFiles('mise.lock') }}-${{ github.ref_name }}-
+            mise-${{ runner.os }}-${{ hashFiles('mise.lock') }}-main-
+
+      - run: mise run ci

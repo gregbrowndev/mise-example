@@ -1,0 +1,72 @@
+amends "package://github.com/jdx/hk/releases/download/v1.45.0/hk@1.45.0#/Config.pkl"
+import "package://github.com/jdx/hk/releases/download/v1.45.0/hk@1.45.0#/Builtins.pkl"
+
+local linters = new Mapping<String, Step> {
+  // General linters
+  ["actionlint"] = Builtins.actionlint
+  ["check-added-large-files"] = (Builtins.check_added_large_files) {
+    exclude = "apps/web/pnpm-lock.yaml"
+  }
+  ["byte-order-marker"] = Builtins.byte_order_marker
+  ["check-executables-have-shebangs"] = Builtins.check_executables_have_shebangs
+  ["check-merge-conflict"] = Builtins.check_merge_conflict
+  ["check-symlinks"] = Builtins.check_symlinks
+  // ["editorconfig-checker"] = Builtins.editorconfig_checker
+  ["hadolint"] = Builtins.hadolint
+  ["jq"] = Builtins.jq
+  ["mise"] = Builtins.mise
+  ["newlines"] = Builtins.newlines
+  ["pkl"] = Builtins.pkl
+  ["pkl-format"] = Builtins.pkl_format
+  // ["shellcheck"] = Builtins.shellcheck
+  ["rumdl"] = Builtins.rumdl
+  ["shfmt"] = Builtins.shfmt
+  ["tombi"] = Builtins.tombi
+  ["tombi-format"] = Builtins.tombi_format
+  ["trailing-whitespace"] = Builtins.trailing_whitespace
+  ["typos"] = Builtins.typos
+  ["yamlfmt"] = Builtins.yamlfmt
+}
+
+local generators = new Mapping<String, Step> {}
+
+hooks {
+  ["pre-commit"] {
+    fix = true // allow auto-fix to run on pre-commit
+    stash = "git" // only check staged changes
+    fail_on_fix = true // block commit if any fixes are made
+    stage = false // require fixes to be reviewed and staged manually
+    steps {
+      ["no-commit-to-branch"] = Builtins.no_commit_to_branch
+      ...generators
+      ...linters
+    }
+  }
+  ["pre-push"] {
+    // Note: instead of checking hk linters only, run the full CI suite
+    // via mise which includes running `hk check --all`
+    steps {
+      ["ci"] {
+        check = "mise run //:ci"
+        exclusive = true
+      }
+    }
+  }
+  // Note: these are convenience commands, not actual git hooks
+  ["fix"] {
+    // Note: `mise format` runs `hk fix --all`
+    fix = true
+    stage = false
+    steps {
+      ...generators
+      ...linters
+    }
+  }
+  ["check"] {
+    // Note: `mise lint` runs `hk check --all`
+    steps {
+      ...generators
+      ...linters
+    }
+  }
+}
