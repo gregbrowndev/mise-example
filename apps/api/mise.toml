@@ -1,0 +1,22 @@
+[deps.uv]
+auto = true
+
+[tasks]
+[tasks.format]
+extends = "ruff:format"
+
+[tasks.lint]
+description = "Lint all files"
+depends = ["lint:*"]
+
+[tasks."lint:ruff"]
+extends = "ruff:lint"
+
+[tasks."lint:types"]
+extends = "ty:check"
+
+[tasks.test]
+extends = "pytest:test"
+
+[tasks.outdated]
+extends = "uv:outdated"

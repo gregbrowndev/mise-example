@@ -1,0 +1,94 @@
+min_version = "2026.5.16"
+experimental_monorepo_root = true
+
+[monorepo]
+config_roots = ["apps/*", "packages/*"]
+
+[env]
+NODE_VERSION = "26.2.0"
+
+[tools]
+usage = "latest"
+node = { version = "{{ env['NODE_VERSION'] }}", postinstall = "corepack enable" }
+python = "3.14"
+uv = "latest"
+jq = "latest"
+fd = "latest"
+hk = "latest"
+pkl = "latest"
+shfmt = "latest"
+shellcheck = "latest"
+tombi = "latest"
+actionlint = "latest"
+yamlfmt = "latest"
+editorconfig-checker = "latest"
+typos = "latest"
+gh = "latest"
+rumdl = "latest"
+hadolint = "latest"
+
+[hooks]
+postinstall = { task = "setup" }
+
+[settings]
+experimental = true
+lockfile = true
+task.output = "keep-order"
+
+[tasks]
+[tasks.setup]
+description = "Set up dev environment"
+depends = ["install-git-hooks"]
+
+[tasks.install-git-hooks]
+description = "Install git hooks"
+quiet = true
+run = '''
+#!/usr/bin/env sh
+if [ -n "$CI" ]; then
+  exit 0
+fi
+hk install --mise
+'''
+
+[tasks.format]
+description = "Run formatters"
+interactive = true
+run = "hk fix --all"
+
+[tasks.lint]
+description = "Run linters"
+interactive = true
+run = "hk check --all"
+
+[tasks.test]
+description = "Run tests"
+interactive = true
+depends = "//*/...:test"
+
+[tasks.ci]
+description = "Run continuous integration tasks"
+interactive = true
+run = [{ tasks = ["lint"] }]
+
+# Task templates
+# --------------
+[task_templates."ruff:format"]
+description = "Run Ruff formatter and lint autofix"
+run = ["uv run ruff format", "uv run ruff check --fix --unsafe-fixes"]
+
+[task_templates."ruff:lint"]
+description = "Run Ruff formatter and linting check"
+run = ["uv run ruff format --check --diff", "uv run ruff check --diff"]
+
+[task_templates."ty:check"]
+description = "Run Pyright type checker"
+run = "uv run ty check"
+
+[task_templates."pytest:test"]
+description = "Run Pytest tests"
+run = "uv run pytest tests"
+
+[task_templates."uv:outdated"]
+description = "Check for outdated dependencies"
+run = "uvx uv-outdated --show-headers --direct"

@@ -1,0 +1,119 @@
+# See https://github.com/rvben/rumdl?tab=readme-ov-file#configuration-file-example
+# Use preset? https://github.com/rvben/rumdl/blob/main/examples/google-style.rumdl.toml
+[global]
+
+[per-file-ignores]
+".github/pull_request_template.md" = ["MD041"]  # Ignore "First line h1"
+
+[MD003]
+style = "consistent"
+
+[MD004]
+style = "consistent"
+
+[MD007]
+indent = 2
+start-indent = 2
+start-indented = false
+style = "fixed"
+
+[MD009]
+br-spaces = 2
+list-item-empty-lines = false
+strict = false
+
+[MD010]
+spaces-per-tab = 2
+
+[MD012]
+maximum = 1
+
+[MD013]
+code-blocks = true
+headings = true
+line-length = 500
+strict = false
+tables = false
+
+[MD022]
+lines-above = 1
+lines-below = 1
+
+[MD025]
+front-matter-title = "title"
+level = 1
+
+[MD026]
+punctuation = ".,;:!。，；：！"
+
+[MD029]
+style = "one_or_ordered"
+
+[MD031]
+list-items = true
+
+[MD033]
+allowed-elements = ["div", "br", "hr", "details", "summary"]
+
+[MD035]
+style = "consistent"
+
+[MD040]
+allowed-languages = []
+
+[MD041]
+front-matter-title = "title"
+level = 1
+
+[MD043]
+headings = ["*"]
+match-case = false
+
+[MD044]
+code-blocks = true
+html-elements = true
+names = []
+
+[MD046]
+style = "consistent"
+
+[MD048]
+style = "consistent"
+
+[MD049]
+style = "consistent"
+
+[MD050]
+style = "consistent"
+
+[MD053]
+ignored-definitions = ["//"]
+
+[MD060]
+enabled = true
+style = "aligned"
+
+[MD070]
+enabled = true
+
+[MD073]
+enabled = true
+
+[code-block-tools]
+enabled = true
+normalize-language = "linguist"
+on-error = "warn"
+timeout = 30000
+
+[code-block-tools.language-aliases]
+py = "python"
+bash = "shell"
+
+# Configure tools per language
+[code-block-tools.languages]
+python = { lint = ["ruff:check"], format = ["ruff:format"] }
+shell = { lint = ["shellcheck --shell=sh"], format = ["shfmt"] }
+javascript = { format = ["prettier"] }
+json = { format = ["jq"] }
+# rust = { format = ["rustfmt"] }
+# go = { format = ["gofmt"] }
