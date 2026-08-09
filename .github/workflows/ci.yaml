@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # git-restore-mtime needs full history to find each file's last-touching commit
           fetch-depth: 0
@@ -48,7 +48,7 @@ jobs:
           version: ${{ steps.mise-version.outputs.version }}
 
       # persist mise task output
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         with:
           path: |
             ~/.local/state/mise
